@@ -28,12 +28,6 @@ class ImageProcessorCV(ImageProcessor):
     def draw_rec(self, img, top_left, bottom_right, color=(0, 0, 255)):
         cv2.rectangle(img, top_left, bottom_right, color, 10)
 
-    def show_img(self):
-        plt.subplot(211)
-        plt.imshow(self._bgr2rgb(self.drawing_img))
-        plt.subplot(212)
-        plt.imshow(self.edge_img, cmap="gray")
-
     def save_img(self, img, img_prefix="problem"):
         img_name = "./image/{prefix}".format(prefix=img_prefix)
         i = 0
@@ -44,7 +38,3 @@ class ImageProcessorCV(ImageProcessor):
             i += 1
         cv2.imwrite(img_filename, img)
 
-    def _bgr2rgb(self, img):
-        b, g, r = cv2.split(img)  # get b,g,r
-        rgb_img = cv2.merge([r, g, b])  # switch it to rgb
-        return rgb_img

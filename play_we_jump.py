@@ -6,9 +6,11 @@ from JumpInfoExtractor import JumpInfoExtractor
 from JumpCommandMaker import JumpCommandMaker
 from JumpExecutor import JumpExecutor
 
+import matplotlib.pyplot as plt
+
 
 def main():
-    sleep_seconds = 1
+    sleep_seconds = 0.6
 
     input_fetcher = JumpInputFetcher()
 
@@ -23,6 +25,8 @@ def main():
                       extractor_list=[info_extractor],
                       command_maker=command_maker,
                       executor=executor)
+
+    plt.ion()
     agent.run()
 
 

@@ -9,7 +9,11 @@ class JumpCommandMaker(CommandMaker):
 
     def make_commands(self, known_info: dict) -> List[Command]:
         distance = known_info['distance']
+        drawing_img = known_info['drawing_img']
+        edge_img = known_info['edge_img']
+
         swipe_time = int(round(distance * self.coefficient))
 
-        return [('jump', {'swipe_time': swipe_time}),
+        return [('show', {'drawing_img': drawing_img, 'edge_img': edge_img}),
+                ('jump', {'swipe_time': swipe_time}),
                 ('sleep', {'seconds': swipe_time / 1000})]

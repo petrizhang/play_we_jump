@@ -22,7 +22,9 @@ class JumpInfoExtractor(InfoExtractor):
         self.raw_img = self.image_processor.imread(img_path)
         self.drawing_img = self.image_processor.imcopy(self.raw_img)
         distance = self.get_distance()
-        return {'distance': distance}
+        return {'distance': distance,
+                'drawing_img': self.drawing_img,
+                'edge_img': self.edge_img}
 
     @property
     def drawing_img_work_area(self):
@@ -34,7 +36,7 @@ class JumpInfoExtractor(InfoExtractor):
         y_min, y_max = 500, 1200
         return self.raw_img[y_min:y_max, :, :]
 
-    def get_distance(self, drawing=True):
+    def get_distance(self, drawing=False):
         # 先获取棋子位置
         player_point, player_rec = self.get_player_pos()
 
@@ -45,21 +47,26 @@ class JumpInfoExtractor(InfoExtractor):
         target_top_point_x, target_top_point_y = self.get_target_top_point(edge_img)
         target_point_approximate = (target_top_point_x, target_top_point_y + 30)
 
-        # 检测目标两条边
-        top_line, bottom_line = self.get_target_line(edge_img)
+        # # 检测目标两条边
+        # top_line, bottom_line = self.get_target_line(edge_img)
+        #
+        # # 如果检测到目标矩形
+        # if top_line is not None:
+        #     top_line, bottom_line = self.fit_line(top_line, bottom_line)
+        #     line_center_point = geo.rec_center(bottom_line, top_line)
+        #     # 确实检测到了目标矩形而不是其他的矩形
+        #     if geo.in_area(target_point_approximate, top_line, bottom_line) and geo.distance_point(
+        #             target_point_approximate, line_center_point) < 150:
+        #         # target_point = line_center_point
+        #         k, b = geo.kb_of_line(bottom_line)
+        #         target_point = (target_top_point_x,
+        #                         geo.roundi((target_top_point_y + k * target_top_point_x + b) / 2))
+        #     else:
+        #         target_point = target_point_approximate
+        # else:
+        #     target_point = target_point_approximate
 
-        # 如果检测到目标矩形
-        if top_line is not None:
-            top_line, bottom_line = self.fit_line(top_line, bottom_line)
-            line_center_point = geo.rec_center(bottom_line, top_line)
-            if geo.in_area(target_point_approximate, top_line, bottom_line) and geo.distance_point(
-                    target_point_approximate, line_center_point) < 150:
-                target_point = line_center_point
-            else:
-                target_point = target_point_approximate
-        else:
-            target_point = target_point_approximate
-
+        target_point = self.get_tan_target_point(player_point, (target_top_point_x, target_top_point_y))
         if drawing:
             # 画出棋子所在位置
             target_line_center_x, target_line_center_y = player_point
