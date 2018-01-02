@@ -12,7 +12,7 @@ from ImageProcessor import ImageProcessor
 from AgentBackend import AgentBackend
 
 
-class WeJumpAgent(object):
+class GameAgent(object):
     def __init__(self,
                  image_processor: ImageProcessor,
                  agent_backend: AgentBackend,
