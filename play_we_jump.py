@@ -1,12 +1,28 @@
-from GameAgent import GameAgent
+from GameAgent.GameAgent import GameAgent
+
 from ImageProcessorCV import ImageProcessorCV
-from AgentBackendAdb import AgentBackendAdb
+from JumpInputFetcher import JumpInputFetcher
+from JumpInfoExtractor import JumpInfoExtractor
+from JumpCommandMaker import JumpCommandMaker
+from JumpExecutor import JumpExecutor
 
 
 def main():
+    sleep_seconds = 1
+
+    input_fetcher = JumpInputFetcher()
+
     image_processor = ImageProcessorCV()
-    agent_backend = AgentBackendAdb()
-    agent = GameAgent(image_processor, agent_backend)
+    info_extractor = JumpInfoExtractor(image_processor)
+
+    command_maker = JumpCommandMaker()
+
+    executor = JumpExecutor()
+    agent = GameAgent(sleep_seconds=sleep_seconds,
+                      input_fetcher=input_fetcher,
+                      extractor_list=[info_extractor],
+                      command_maker=command_maker,
+                      executor=executor)
     agent.run()
 
 

@@ -1,28 +1,28 @@
-import os
-import subprocess
-
+from math import pi, tan
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-from math import pi, tan, sqrt
-from random import randint
-from time import sleep
-import geometry_op as geo
+
+from GameAgent.InfoExtractor import InfoExtractor
 from ImageProcessor import ImageProcessor
-from AgentBackend import AgentBackend
+import geometry_op as geo
 
 
-class GameAgent(object):
+class JumpInfoExtractor(InfoExtractor):
     def __init__(self,
                  image_processor: ImageProcessor,
-                 agent_backend: AgentBackend,
                  player_template_path="./images/player.png"):
-        self.agent_backend = agent_backend
         self.image_processor = image_processor
         self.raw_img = None  # 原始图像数据
         self.drawing_img = None  # 在此图上绘图
         self.edge_img = None  # 边缘检测得到的图像
         self.player_template_path = player_template_path
+
+    def extract(self, known_info: dict) -> dict:
+        img_path = known_info['img_path']
+        self.raw_img = self.image_processor.imread(img_path)
+        self.drawing_img = self.image_processor.imcopy(self.raw_img)
+        distance = self.get_distance()
+        return {'distance': distance}
 
     @property
     def drawing_img_work_area(self):
@@ -234,20 +234,3 @@ class GameAgent(object):
 
     def draw_rec(self, top_left, bottom_right, color=(0, 0, 255)):
         self.image_processor.draw_rec(self.drawing_img_work_area, top_left, bottom_right, color)
-
-    def screenshot(self):
-        shot_path = self.agent_backend.fetch_screenshot()
-        self.raw_img = self.image_processor.imread(shot_path)
-        self.drawing_img = self.image_processor.imcopy(self.raw_img)
-
-    def run(self):
-        plt.ion()
-        swipe_time = 0
-        while True:
-            sleep((swipe_time + 1000) / 1000)
-            # capture screenshot
-            self.screenshot()
-            # 获取路线
-            distance = self.get_distance()
-            swipe_time = int(round(distance * 1.393))
-            self.agent_backend.jump(swipe_time)
