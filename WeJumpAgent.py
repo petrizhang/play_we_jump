@@ -8,42 +8,21 @@ from math import pi, tan, sqrt
 from random import randint
 from time import sleep
 import geometry_op as geo
-from CVDrawer import CVDrawer
+from ImageProcessor import ImageProcessor
+from AgentBackend import AgentBackend
 
 
 class WeJumpAgent(object):
-    def __init__(self, android_img_path="/storage/emulated/0/WeJumpAgent.png",
-                 local_img_path="./images/WeJumpAgent.png",
-                 player_template_path="./images/player.png",
-                 drawer=None):
-        self.rotate_angle = -30
-
-        self.android_img_path = android_img_path
-        self.local_img_path = local_img_path
-        self.player_template_path = player_template_path
-        if drawer is None:
-            self.drawer = CVDrawer()
-        else:
-            self.drawer = drawer
+    def __init__(self,
+                 image_processor: ImageProcessor,
+                 agent_backend: AgentBackend,
+                 player_template_path="./images/player.png"):
+        self.agent_backend = agent_backend
+        self.image_processor = image_processor
         self.raw_img = None  # 原始图像数据
         self.drawing_img = None  # 在此图上绘图
         self.edge_img = None  # 边缘检测得到的图像
-
-        # 棋子矩形: ((top_left_x,top_left_y),(bottom_right_x,bottom_right_y))
-        self.player_rec = ((None, None), (None, None))
-        # 棋子位置: (center_x,center_y)
-        self.player_point = (None, None)
-
-        # 目标图形的顶点
-        self.target_top_point = (None, None)
-        # 根据tan(pi/6)算出来的目标位置
-        self.tan_target_point = (None, None)
-
-        # 目标矩形的两条线
-        self.target_top_line = (None, None, None, None)
-        self.target_bottom_line = (None, None, None, None)
-        # 根据两条直线算出来的目标位置
-        self.line_target_point = (None, None)
+        self.player_template_path = player_template_path
 
     @property
     def drawing_img_work_area(self):
@@ -137,7 +116,6 @@ class WeJumpAgent(object):
         """
         binary = edge_img
 
-        # TODO 防止检测不到直线
         # 直线检测
         lines = cv2.HoughLinesP(binary, 1, np.pi / 180, 30, minLineLength=60, maxLineGap=10)
         lines = lines[:, 0, :]  # 提取为二维
@@ -243,65 +221,24 @@ class WeJumpAgent(object):
 
         return player_point, player_rec
 
-    def show_img(self):
-        plt.subplot(211)
-        plt.imshow(self._bgr2rgb(self.drawing_img))
-        plt.subplot(212)
-        plt.imshow(self.edge_img, cmap="gray")
-
-    def save_img(self, img, img_prefix="problem"):
-        img_name = "./image/{prefix}".format(prefix=img_prefix)
-        i = 0
-        while True:
-            img_filename = "{img_name}{num}.png".format(img_name=img_name, num=i)
-            if not os.path.exists(img_filename):
-                break
-            i += 1
-        cv2.imwrite(img_filename, img)
-
-    def _bgr2rgb(self, img):
-        b, g, r = cv2.split(img)  # get b,g,r
-        rgb_img = cv2.merge([r, g, b])  # switch it to rgb
-        return rgb_img
-
     def draw_line_by_point(self, start, end, color=(0, 0, 255)):
         start_x, start_y = start
         end_x, end_y = end
         self.draw_line((start_x, start_y, end_x, end_y), color)
 
     def draw_line(self, line, color=(0, 0, 255)):
-        self.drawer.draw_line(self.drawing_img_work_area, line, color)
+        self.image_processor.draw_line(self.drawing_img_work_area, line, color)
 
     def draw_circle(self, center_point, color=(0, 255, 255)):
-        self.drawer.draw_circle(self.drawing_img_work_area, center_point, color)
+        self.image_processor.draw_circle(self.drawing_img_work_area, center_point, color)
 
     def draw_rec(self, top_left, bottom_right, color=(0, 0, 255)):
-        self.drawer.draw_rec(self.drawing_img_work_area, top_left, bottom_right, color)
-
-    def adb_shell(self, cmd):
-        adb_cmd = 'adb shell "{0}"'.format(cmd)
-        self.shell(adb_cmd)
-
-    def shell(self, cmd):
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        print("-------------------- excuting shell command:")
-        print(cmd)
-        print()
-        print("-------------------- result: ")
-        for line in p.stdout.readlines():
-            print(line.decode(), end="")
-        print()
-        retval = p.wait()
+        self.image_processor.draw_rec(self.drawing_img_work_area, top_left, bottom_right, color)
 
     def screenshot(self):
-        self.adb_shell("screencap -p {0}".format(self.android_img_path))
-        self.shell("adb pull {source} {target}".format(source=self.android_img_path, target=self.local_img_path))
-        self.raw_img = cv2.imread(self.local_img_path)
-        self.drawing_img = self.raw_img.copy()
-
-    def jump(self, swipe_time):
-        x, y = randint(500, 1000), randint(300, 500)
-        self.adb_shell("input swipe {x} {y} {x} {y} {time}".format(x=x, y=y, time=swipe_time))
+        shot_path = self.agent_backend.fetch_screenshot()
+        self.raw_img = self.image_processor.imread(shot_path)
+        self.drawing_img = self.image_processor.imcopy(self.raw_img)
 
     def run(self):
         plt.ion()
@@ -312,24 +249,5 @@ class WeJumpAgent(object):
             self.screenshot()
             # 获取路线
             distance = self.get_distance()
-
-            # 保存图片
-            self.show_img()
-            plt.pause(0.01)
-            cv2.imwrite("images/draw.png", self.drawing_img)
-            cv2.imwrite("images/edge.png", self.edge_img)
-
             swipe_time = int(round(distance * 1.393))
-
-            self.jump(swipe_time)
-
-
-def main():
-    a = WeJumpAgent()
-    a.run()
-
-
-# sleep((swipe_time+200) / 1000)
-
-if __name__ == "__main__":
-    main()
+            self.agent_backend.jump(swipe_time)

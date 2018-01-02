@@ -1,4 +1,13 @@
-class Drawer(object):
+class ImageProcessor(object):
+    def imread(self, file_path):
+        raise NotImplementedError
+
+    def imwrite(self, file_path, img):
+        raise NotImplementedError
+
+    def imcopy(self, img):
+        raise NotImplementedError
+
     def draw_line(self, img, line, color=(0, 0, 255)):
         raise NotImplementedError
 
