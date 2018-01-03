@@ -1,6 +1,6 @@
 *.png
+!player.png
 .idea
-*ipynb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
