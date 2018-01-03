@@ -21,7 +21,9 @@ class JumpInfoExtractor(InfoExtractor):
         img_path = known_info['img_path']
         self.raw_img = self.image_processor.imread(img_path)
         self.drawing_img = self.image_processor.imcopy(self.raw_img)
-        xdistance = self.get_xdistance()
+        config = known_info.get('config', {})
+        drawing = config.get('show_img')
+        xdistance = self.get_xdistance(drawing)
         return {'xdistance': xdistance,
                 'drawing_img': self.drawing_img,
                 'edge_img': self.edge_img}

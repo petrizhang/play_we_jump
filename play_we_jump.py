@@ -10,7 +10,10 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    sleep_seconds = 0.6
+    config = {
+        'show_img': True,
+        'sleep_seconds': 0.6
+    }
 
     input_fetcher = JumpInputFetcher()
 
@@ -20,7 +23,8 @@ def main():
     command_maker = JumpCommandMaker()
 
     executor = JumpExecutor()
-    agent = GameAgent(sleep_seconds=sleep_seconds,
+
+    agent = GameAgent(config=config,
                       input_fetcher=input_fetcher,
                       extractor_list=[info_extractor],
                       command_maker=command_maker,

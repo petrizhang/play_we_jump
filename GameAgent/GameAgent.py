@@ -8,12 +8,12 @@ from time import sleep
 
 class GameAgent(object):
     def __init__(self,
-                 sleep_seconds: float,
+                 config: dict,
                  input_fetcher: InputFetcher,
                  extractor_list: List[InfoExtractor],
                  command_maker: CommandMaker,
                  executor):
-        self.sleep_seconds = sleep_seconds
+        self.config = config
         self.input_fetcher = input_fetcher
         self.extractor_list = extractor_list
         self.command_maker = command_maker
@@ -25,10 +25,11 @@ class GameAgent(object):
 
         :return: None
         """
+        sleep_seconds = self.config.get('sleep_seconds', 0)
         while True:
-            sleep(self.sleep_seconds)
+            sleep(sleep_seconds)
             # fetch input
-            known_info = self.input_fetcher.fetch_input()
+            known_info = self.input_fetcher.fetch_input(self.config)
             # extract useful information
             for extractor in self.extractor_list:
                 new_info = extractor.extract(known_info)
