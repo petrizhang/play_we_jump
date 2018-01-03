@@ -3,8 +3,8 @@ from adb_utils import *
 
 
 class JumpInputFetcher(InputFetcher):
-    def __init__(self, android_img_path="/storage/emulated/0/WeJumpAgent.png",
-                 local_img_path="./images/WeJumpAgent.png"):
+    def __init__(self, android_img_path="/storage/emulated/0/play_we_jump.png",
+                 local_img_path="./images/play_we_jump.png"):
         self.android_img_path = android_img_path
         self.local_img_path = local_img_path
 
